@@ -39,9 +39,10 @@ app.get('/', (req, res) => {
 
 // Create a new agent
 app.post('/agents', (req, res) => {
-  const { FirstName, LastName, Email, PhoneNumber, Position } = req.body;
-  const sql = 'INSERT INTO Agents SET ?';
-  const agentData = { FirstName, LastName, Email, PhoneNumber, Position };
+  const { agent_name, contract_level } = req.body;
+  const sql = 'INSERT INTO agent_table (agent_name, contract_level) VALUES (?, ?)';
+  const agentData = [agent_name, contract_level];
+  
 
   db.query(sql, agentData, (err, result) => {
     if (err) {
@@ -54,7 +55,7 @@ app.post('/agents', (req, res) => {
 
 // Read all agents
 app.get('/agents', (req, res) => {
-  const sql = 'SELECT * FROM Agents';
+  const sql = 'SELECT * FROM agent_table';
 
   db.query(sql, (err, results) => {
     if (err) {
@@ -69,7 +70,7 @@ app.get('/agents', (req, res) => {
 app.put('/agents/:id', (req, res) => {
   const { id } = req.params;
   const { FirstName, LastName, Email, PhoneNumber, Position } = req.body;
-  const sql = 'UPDATE Agents SET ? WHERE AgentID = ?';
+  const sql = 'UPDATE agent_table SET ? WHERE AgentID = ?';
   const agentData = { FirstName, LastName, Email, PhoneNumber, Position };
 
   db.query(sql, [agentData, id], (err, result) => {
@@ -84,7 +85,7 @@ app.put('/agents/:id', (req, res) => {
 // Delete an agent
 app.delete('/agents/:id', (req, res) => {
   const { id } = req.params;
-  const sql = 'DELETE FROM Agents WHERE AgentID = ?';
+  const sql = 'DELETE FROM agent_table WHERE AgentID = ?';
 
   db.query(sql, id, (err, result) => {
     if (err) {
@@ -106,3 +107,5 @@ app.get('/profile', ensureLoggedIn, (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+res.status(500).send({ error: 'Internal Server Error', details: err.message });
