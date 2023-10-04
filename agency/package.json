@@ -1,0 +1,23 @@
+{
+  "name": "lifeinsuranceagencyproject",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1468.0",
+    "connect-ensure-login": "^0.1.1",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-openid-connect": "^2.17.0",
+    "express-session": "^1.17.3",
+    "mysql": "^2.18.1",
+    "passport": "^0.6.0",
+    "passport-google-oauth20": "^2.0.0"
+  }
+}
