@@ -9,10 +9,14 @@ require('dotenv').config();
 const app = express();
 const PORT = 3002;
 
+// Setting up EJS as the view engine
+app.set('view engine', 'ejs');
+app.set('views', './views');
+
 // Middleware to parse JSON requests
 app.use(express.json());
 
-console.log(process.env.AUTH0_SECRET);
+// Auth0 Configuration and Middleware
 const config = {
     authRequired: false,
     auth0Logout: true,
@@ -21,8 +25,6 @@ const config = {
     clientID: process.env.AUTH0_CLIENT_ID,
     issuerBaseURL: process.env.AUTH0_DOMAIN
 };
-
-// Add Auth0 as middleware
 app.use(auth(config));
 
 function ensureLoggedIn(req, res, next) {
@@ -32,16 +34,31 @@ function ensureLoggedIn(req, res, next) {
     res.redirect('/login');
 }
 
-// Test endpoint
-app.get('/', (req, res) => {
-    res.send(req.oidc.isAuthenticated() ? 'Logged in' : 'Logged out');
+// Home Route with Agent Management Dashboard
+app.get('/', ensureLoggedIn, (req, res) => {
+    const sql = 'SELECT * FROM agent_table';
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error(err.message);
+            res.status(500).send("Internal Server Error");
+            return;
+        }
+        const agents = results.rows || [];
+        res.render('index', { agents });
+    });
 });
 
 // Create a new agent
 app.post('/agents', (req, res) => {
-    const { agent_name, contract_level } = req.body;
-    const sql = 'INSERT INTO agent_table (agent_name, contract_level) VALUES ($1, $2)';
-    db.query(sql, [agent_name, contract_level], (err, result) => {
+    const { agent_name, contract_level, upline } = req.body;
+    
+    // Check if the required fields are present
+    if (!agent_name || !contract_level) {
+        return res.status(400).json({ error: "Required fields are missing." });
+    }
+    
+    const sql = 'INSERT INTO agent_table (agent_name, contract_level, upline) VALUES ($1, $2, $3)';
+    db.query(sql, [agent_name, contract_level, upline], (err, result) => {
         if (err) {
             console.error(err.message);
             res.status(500).json({ error: 'Internal Server Error', details: err.message });
@@ -51,50 +68,35 @@ app.post('/agents', (req, res) => {
     });
 });
 
-// Read all agents
-app.get('/agents', (req, res) => {
-    const sql = 'SELECT * FROM agent_table';
-    db.query(sql, (err, results) => {
+
+// Update an agent
+app.put('/agents/:agent_code', (req, res) => {
+    const { agent_code } = req.params;
+    const { agent_name, contract_level, upline } = req.body;
+    const sql = 'UPDATE agent_table SET agent_name = $1, contract_level = $2, upline = $3 WHERE agent_code = $4';
+    db.query(sql, [agent_name, contract_level, upline, agent_code], (err, result) => {
         if (err) {
             console.error(err.message);
             res.status(500).json({ error: 'Internal Server Error', details: err.message });
             return;
         }
-        res.status(200).json(results);
+        res.status(200).json({ message: 'Agent updated.' });
     });
 });
 
-// Update an agent
-app.put('/agents/:agent_code', (req, res) => {
-  const { agent_code } = req.params;
-  const { agent_name, contract_level } = req.body;
-  const sql = 'UPDATE agent_table SET agent_name = $1, contract_level = $2 WHERE agent_code = $3';
-  db.query(sql, [agent_name, contract_level, agent_code], (err, result) => {
-      if (err) {
-          console.error(err.message);
-          res.status(500).json({ error: 'Internal Server Error', details: err.message });
-          return;
-      }
-      res.status(200).json({ message: 'Agent updated.' });
-  });
-});
-
 // Delete an agent
-app.delete('/agents/:id', (req, res) => {
-  const { id } = req.params;
-  const sql = 'DELETE FROM agent_table WHERE agent_code = ?';
-
-  db.query(sql, id, (err, result) => {
-    if (err) {
-      console.error(err.message);
-      res.status(500).json({ success: false });
-      return;
-    }
-    res.status(200).json({ success: true });
-  });
+app.delete('/agents/:agent_code', (req, res) => {
+    const { agent_code } = req.params;
+    const sql = 'DELETE FROM agent_table WHERE agent_code = $1';
+    db.query(sql, [agent_code], (err, result) => {
+        if (err) {
+            console.error(err.message);
+            res.status(500).json({ error: 'Internal Server Error', details: err.message });
+            return;
+        }
+        res.status(200).json({ message: 'Agent deleted.' });
+    });
 });
-
-
 
 // Profile page, only accessible for logged-in users
 app.get('/profile', ensureLoggedIn, (req, res) => {
@@ -103,29 +105,13 @@ app.get('/profile', ensureLoggedIn, (req, res) => {
     });
 });
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
-
 // Error-handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send({ error: 'Internal Server Error', details: err.message });
 });
 
-
-app.set('view engine', 'pug');
-app.set('views', './views');
-
-app.get('/', (req, res) => {
-  const sql = 'SELECT * FROM agent_table';
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error(err.message);
-      res.status(500).send("Internal Server Error");
-      return;
-    }
-    res.render('index', { agents: results });
-  });
+// Start the server
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
