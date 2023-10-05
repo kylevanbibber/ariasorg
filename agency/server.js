@@ -49,7 +49,7 @@ app.get('/', ensureLoggedIn, (req, res) => {
 });
 
 // Create a new agent
-app.post('/agents', (req, res) => {
+app.post('/api/agents', (req, res) => {
     const { agent_name, contract_level, upline } = req.body;
     
     // Check if the required fields are present
@@ -70,7 +70,7 @@ app.post('/agents', (req, res) => {
 
 
 // Update an agent
-app.put('/agents/:agent_code', (req, res) => {
+app.put('/api/agents/:agent_code', (req, res) => {
     const { agent_code } = req.params;
     const { agent_name, contract_level, upline } = req.body;
     const sql = 'UPDATE agent_table SET agent_name = $1, contract_level = $2, upline = $3 WHERE agent_code = $4';
@@ -85,7 +85,7 @@ app.put('/agents/:agent_code', (req, res) => {
 });
 
 // Delete an agent
-app.delete('/agents/:agent_code', (req, res) => {
+app.delete('/api/agents/:agent_code', (req, res) => {
     const { agent_code } = req.params;
     const sql = 'DELETE FROM agent_table WHERE agent_code = $1';
     db.query(sql, [agent_code], (err, result) => {
