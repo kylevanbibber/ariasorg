@@ -80,18 +80,20 @@ app.put('/agents/:agent_code', (req, res) => {
 });
 
 // Delete an agent
-app.delete('/agents/:agent_code', (req, res) => {
-  const { agent_code } = req.params;
-  const sql = 'DELETE FROM agent_table WHERE agent_code = $1';
-  db.query(sql, [agent_code], (err, result) => {
-      if (err) {
-          console.error(err.message);
-          res.status(500).json({ error: 'Internal Server Error', details: err.message });
-          return;
-      }
-      res.status(200).json({ message: 'Agent deleted.' });
+app.delete('/agents/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = 'DELETE FROM agent_table WHERE agent_code = ?';
+
+  db.query(sql, id, (err, result) => {
+    if (err) {
+      console.error(err.message);
+      res.status(500).json({ success: false });
+      return;
+    }
+    res.status(200).json({ success: true });
   });
 });
+
 
 
 // Profile page, only accessible for logged-in users
@@ -110,4 +112,20 @@ app.listen(PORT, () => {
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send({ error: 'Internal Server Error', details: err.message });
+});
+
+
+app.set('view engine', 'pug');
+app.set('views', './views');
+
+app.get('/', (req, res) => {
+  const sql = 'SELECT * FROM agent_table';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error(err.message);
+      res.status(500).send("Internal Server Error");
+      return;
+    }
+    res.render('index', { agents: results });
+  });
 });
