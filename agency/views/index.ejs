@@ -28,7 +28,7 @@
 </table>
 
 <h2>Add Agent</h2>
-<form action="/agents" method="POST">
+<form action="/api/agents" method="POST">
     <label for="agent_name">Agent Name:</label>
     <input type="text" id="agent_name" name="agent_name" required>
 
@@ -59,12 +59,38 @@
 
 <script>
     function editAgent(agentCode, agentName, contractLevel, upline) {
-      document.getElementById('updateAgentCode').value = agentCode;
-      document.getElementById('updateAgentName').value = agentName;
-      document.getElementById('updateContractLevel').value = contractLevel;
-      document.getElementById('updateUpline').value = upline;
-      document.getElementById('updateForm').scrollIntoView();
-    }
+      document.getElementById('updateForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const agentCode = document.getElementById('updateAgentCode').value;
+    const agentName = document.getElementById('updateAgentName').value;
+    const contractLevel = document.getElementById('updateContractLevel').value;
+    const upline = document.getElementById('updateUpline').value;
+
+    fetch(`/api/agents/${agentCode}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            agent_name: agentName,
+            contract_level: contractLevel,
+            upline: upline
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message === "Agent updated.") {
+            location.reload(); // Refresh the page to see the updated agent details
+        } else {
+            alert('Error updating agent.');
+        }
+    })
+    .catch(error => {
+        alert('Error updating agent. Please try again.');
+    });
+});
+
 
     function deleteAgent(agentCode) {
       const confirmation = confirm('Are you sure you want to delete this agent?');

@@ -1,23 +1,30 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import './App.css'; // Assuming you have an App.css for styles. If not, you can remove this line.
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {/* Add Agent Form */}
+      <form id="addAgentForm" method="POST" action="/api/agents">
+          <input type="text" name="agent_name" placeholder="Agent Name" required />
+          <input type="text" name="contract_level" placeholder="Contract Level" required />
+          <button type="submit">Add Agent</button>
+      </form>
+
+      {/* Agents Table */}
+      <table>
+          <thead>
+              <tr>
+                  <th>Agent Code</th>
+                  <th>Agent Name</th>
+                  <th>Contract Level</th>
+                  <th>Actions</th>
+              </tr>
+          </thead>
+          <tbody id="agentTableBody">
+              {/* Rows will be populated by the JavaScript */}
+          </tbody>
+      </table>
     </div>
   );
 }

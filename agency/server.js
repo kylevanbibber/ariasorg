@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('./database');
 const { auth } = require('express-openid-connect');
+const cors = require('cors');
 
 // Load environment variables
 require('dotenv').config();
@@ -8,6 +9,12 @@ require('dotenv').config();
 // Initialize Express app
 const app = express();
 const PORT = 3002;
+
+// CORS Middleware
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+}));
 
 // Setting up EJS as the view engine
 app.set('view engine', 'ejs');
@@ -26,14 +33,12 @@ const config = {
     issuerBaseURL: process.env.AUTH0_DOMAIN
 };
 app.use(auth(config));
-
 function ensureLoggedIn(req, res, next) {
     if (req.oidc.isAuthenticated()) {
         return next();
     }
     res.redirect('/login');
 }
-
 // Home Route with Agent Management Dashboard
 app.get('/', ensureLoggedIn, (req, res) => {
     const sql = 'SELECT * FROM agent_table';
@@ -48,11 +53,22 @@ app.get('/', ensureLoggedIn, (req, res) => {
     });
 });
 
-// Create a new agent
+// *** This is the route for fetching agents ***
+app.get('/api/agents', (req, res) => {
+    const sql = 'SELECT * FROM agent_table';
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error(err.message);
+            res.status(500).send("Internal Server Error");
+            return;
+        }
+        res.json(results.rows || []);
+    });
+});
+
 app.post('/api/agents', (req, res) => {
     const { agent_name, contract_level, upline } = req.body;
     
-    // Check if the required fields are present
     if (!agent_name || !contract_level) {
         return res.status(400).json({ error: "Required fields are missing." });
     }
@@ -68,8 +84,6 @@ app.post('/api/agents', (req, res) => {
     });
 });
 
-
-// Update an agent
 app.put('/api/agents/:agent_code', (req, res) => {
     const { agent_code } = req.params;
     const { agent_name, contract_level, upline } = req.body;
@@ -84,7 +98,6 @@ app.put('/api/agents/:agent_code', (req, res) => {
     });
 });
 
-// Delete an agent
 app.delete('/api/agents/:agent_code', (req, res) => {
     const { agent_code } = req.params;
     const sql = 'DELETE FROM agent_table WHERE agent_code = $1';
@@ -94,24 +107,10 @@ app.delete('/api/agents/:agent_code', (req, res) => {
             res.status(500).json({ error: 'Internal Server Error', details: err.message });
             return;
         }
-        res.status(200).json({ message: 'Agent deleted.' });
+        res.status(200).json({ success: true, message: 'Agent deleted.' });
     });
 });
 
-// Profile page, only accessible for logged-in users
-app.get('/profile', ensureLoggedIn, (req, res) => {
-    res.json({
-        user: req.oidc.user,
-    });
-});
-
-// Error-handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).send({ error: 'Internal Server Error', details: err.message });
-});
-
-// Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

@@ -30,9 +30,49 @@ function populateAgentTable(agents) {
         contractLevelCell.textContent = agent.contract_level;
 
         const actionsCell = row.insertCell(3);
-        // We can insert buttons or links for Edit and Delete operations here
-        actionsCell.textContent = 'Edit | Delete';  // Placeholder, replace with actual controls
+        
+        // Edit button
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.addEventListener('click', function() {
+            editAgent(agent.agent_code, agent.agent_name, agent.contract_level);
+        });
+        actionsCell.appendChild(editButton);
+
+        // Space between buttons
+        actionsCell.appendChild(document.createTextNode(' | '));
+
+        // Delete button
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', function() {
+            deleteAgent(agent.agent_code);
+        });
+        actionsCell.appendChild(deleteButton);
     });
+}
+
+function editAgent(agentCode, agentName, contractLevel) {
+    // Fill the form or a modal with agent details for editing
+    // You can use the provided agentCode, agentName, and contractLevel values
+    // You might also need to set the form action to use the PUT method or handle the form submission using JavaScript
+}
+
+function deleteAgent(agentCode) {
+    const confirmation = confirm('Are you sure you want to delete this agent?');
+    if (confirmation) {
+        fetch(`/api/agents/${agentCode}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                fetchAndDisplayAgents();
+            } else {
+                alert('Error deleting agent.');
+            }
+        });
+    }
 }
 
 document.getElementById('addAgentForm').addEventListener('submit', function(event) {
@@ -41,7 +81,7 @@ document.getElementById('addAgentForm').addEventListener('submit', function(even
     const agentName = event.target.agent_name.value;
     const contractLevel = event.target.contract_level.value;
 
-    fetch('/api/agents', {
+    fetch('http://localhost:3002/api/agents', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -61,7 +101,6 @@ document.getElementById('addAgentForm').addEventListener('submit', function(even
     })
     .catch(error => console.error('Error adding agent:', error));
 });
-
 
 // Initial fetch to populate the table when the page loads
 fetchAndDisplayAgents();

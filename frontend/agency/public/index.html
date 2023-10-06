@@ -1,36 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your PWA Name</title>
     <link rel="stylesheet" href="styles/main.css">
 </head>
+
 <body>
     <!-- Add Agent Form -->
-<form id="addAgentForm" method="POST" action="/api/agents">
+    <form id="addAgentForm" method="POST">
+        <label for="agent_name">Agent Name:</label>
         <input type="text" name="agent_name" placeholder="Agent Name" required>
+
+        <label for="contract_level">Contract Level:</label>
         <input type="text" name="contract_level" placeholder="Contract Level" required>
+        
         <button type="submit">Add Agent</button>
     </form>
-
-   
-
-
-    <!-- Agents Table -->
-    <table>
-        <thead>
-            <tr>
-                <th>Agent Code</th>
-                <th>Agent Name</th>
-                <th>Contract Level</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody id="agentTableBody">
-            <!-- Rows will be populated by the JavaScript -->
-        </tbody>
-    </table>
 
     <script src="scripts/main.js"></script>
     <link rel="manifest" href="/manifest.json">
