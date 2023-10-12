@@ -16,9 +16,24 @@
 
         <label for="contract_level">Contract Level:</label>
         <input type="text" name="contract_level" placeholder="Contract Level" required>
-        
+
         <button type="submit">Add Agent</button>
     </form>
+
+    <!-- Agents Table -->
+    <table>
+        <thead>
+            <tr>
+                <th>Agent Code</th>
+                <th>Agent Name</th>
+                <th>Contract Level</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="agentTableBody">
+            <!-- Rows will be populated by the JavaScript -->
+        </tbody>
+    </table>
 
     <script src="scripts/main.js"></script>
     <link rel="manifest" href="/manifest.json">
