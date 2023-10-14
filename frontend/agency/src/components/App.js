@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import './styles.css';
 
 function App() {
   const [agents, setAgents] = useState([]);
@@ -9,7 +10,6 @@ function App() {
   });
   const [isEditMode, setIsEditMode] = useState(false);
   const [editAgent, setEditAgent] = useState(null);
-  
 
   useEffect(() => {
     fetchAndDisplayAgents();
@@ -214,7 +214,8 @@ function App() {
   };
 
   return (
-    <div>
+    <div className="container">
+         <div className="form-container"></div>
       <form id="addAgentForm" onSubmit={handleSubmit}>
         <label htmlFor="agentName">Agent Name:</label>
         <input
@@ -311,19 +312,19 @@ function App() {
         agent.upline
       )}
     </td>
-    <td>
-      {isEditMode && editAgent && editAgent.agent_code === agent.agent_code ? (
-        <>
-          <button onClick={() => updateAgent(agent.agent_code)}>Save</button>
-          <button onClick={() => handleCancelEdit()}>Cancel</button>
-        </>
-      ) : (
-        <>
-          <button onClick={() => handleEditAgent(agent)}>Edit</button>
-          <button onClick={() => handleDeleteAgent(agent.agent_code)}>Delete</button>
-        </>
-      )}
-    </td>
+    <td className="actions">
+  {isEditMode && editAgent && editAgent.agent_code === agent.agent_code ? (
+    <>
+      <button onClick={() => updateAgent(agent.agent_code)}>Save</button>
+      <button onClick={() => handleCancelEdit()}>Cancel</button>
+    </>
+  ) : (
+    <>
+      <button onClick={() => handleEditAgent(agent)}>Edit</button>
+      <button onClick={() => handleDeleteAgent(agent.agent_code)}>Delete</button>
+    </>
+  )}
+</td>
   </tr>
 ))}
         </tbody>
