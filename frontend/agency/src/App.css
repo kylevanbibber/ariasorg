@@ -37,3 +37,7 @@
     transform: rotate(360deg);
   }
 }
+.indent {
+  display: inline-block;
+  width: 20px; /* Adjust the width as needed */
+}

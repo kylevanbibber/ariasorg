@@ -72,13 +72,11 @@ function App() {
       return;
     }
 
-    // Check if the contract level is not MGA and upline is an RGA
     if (contractLevel !== 'MGA' && upline === 'RGA') {
       alert('Only MGA can have an RGA as its direct upline.');
       return;
     }
 
-    // Only perform upline validation for non-SGA agents
     if (contractLevel !== 'SGA') {
       const uplineAgent = agents.find((agent) => agent.agent_code.toString() === upline);
 
@@ -95,11 +93,9 @@ function App() {
       }
     }
 
-    // If in edit mode, update the agent
     if (isEditMode) {
       updateAgent(editAgent.agent_code);
     } else {
-      // Otherwise, add a new agent
       addAgent();
     }
   };
@@ -153,7 +149,6 @@ function App() {
       return;
     }
 
-    // Only perform upline validation if there is a change in the upline field
     if (updatedUpline !== editAgent.upline) {
       const uplineAgent = agents.find((agent) => agent.agent_code.toString() === updatedUpline);
 
@@ -259,7 +254,6 @@ function App() {
         <button type="submit">{isEditMode ? 'Save Agent' : 'Add Agent'}</button>
       </form>
 
-      {/* Render agents data here */}
       <table>
         <thead>
           <tr>

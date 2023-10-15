@@ -49,10 +49,31 @@ app.get('/', ensureLoggedIn, (req, res) => {
             res.status(500).send("Internal Server Error");
             return;
         }
-        const agents = results.rows || [];
+        const agents = organizeAgents(results.rows || []);
         res.render('index', { agents });
     });
 });
+
+// Helper function to organize agents in a hierarchical structure
+function organizeAgents(agents) {
+    const agentMap = new Map();
+
+    agents.forEach(agent => {
+        agent.children = [];
+        agentMap.set(agent.agent_code, agent);
+    });
+
+    agents.forEach(agent => {
+        if (agent.upline !== null) {
+            const parent = agentMap.get(agent.upline);
+            if (parent) {
+                parent.children.push(agent);
+            }
+        }
+    });
+
+    return agents.filter(agent => agent.upline === null);
+}
 
 // *** This is the route for fetching agents ***
 app.get('/api/agents', (req, res) => {
@@ -63,17 +84,14 @@ app.get('/api/agents', (req, res) => {
             res.status(500).send("Internal Server Error");
             return;
         }
-        res.json(results.rows || []);
+        const agents = organizeAgents(results.rows || []);
+        res.json(agents);
     });
 });
 
 app.post('/api/agents', (req, res) => {
     const { agent_name, contract_level, upline } = req.body;
 
-    // Get the upline agent's contract level based on the upline agent code
-    // You can use a database query or another method to fetch the upline agent's contract level
-
-    // Example: Fetch the upline agent's contract level from your database
     const uplineAgentSql = 'SELECT contract_level FROM agent_table WHERE agent_code = $1';
     db.query(uplineAgentSql, [upline], (err, result) => {
         if (err) {
@@ -82,22 +100,13 @@ app.post('/api/agents', (req, res) => {
             return;
         }
 
-        // Check if the result.rows array is empty
         if (result.rows.length === 0) {
             res.status(404).json({ error: 'Upline agent not found.' });
             return;
         }
 
-        // Assuming result.rows[0].contract_level contains the upline agent's contract level
         const uplineAgentContractLevel = result.rows[0].contract_level;
 
-        // Implement your contract level validation logic here
-        // Example: if (!isContractLevelAllowed(contract_level, uplineAgentContractLevel)) {
-        //   res.status(400).json({ error: 'Invalid contract level for the specified upline.' });
-        //   return;
-        // }
-
-        // If everything is validated, proceed with adding the agent
         const sql = 'INSERT INTO agent_table (agent_name, contract_level, upline) VALUES ($1, $2, $3)';
         db.query(sql, [agent_name, contract_level, upline], (err, result) => {
             if (err) {
