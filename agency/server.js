@@ -69,45 +69,45 @@ app.get('/api/agents', (req, res) => {
 
 app.post('/api/agents', (req, res) => {
     const { agent_name, contract_level, upline } = req.body;
-    
-    if (!agent_name || !contract_level) {
-        return res.status(400).json({ error: "Required fields are missing." });
-    }
-    
-    // Fetch the contract level of the upline agent
+
+    // Get the upline agent's contract level based on the upline agent code
+    // You can use a database query or another method to fetch the upline agent's contract level
+
+    // Example: Fetch the upline agent's contract level from your database
     const uplineAgentSql = 'SELECT contract_level FROM agent_table WHERE agent_code = $1';
-  db.query(uplineAgentSql, [upline], (err, result) => {
-    if (err) {
-      console.error(err.message);
-      res.status(500).json({ error: 'Internal Server Error', details: err.message });
-      return;
-    }
-        // Check if the upline agent exists and their contract level meets the hierarchy rules
+    db.query(uplineAgentSql, [upline], (err, result) => {
+        if (err) {
+            console.error(err.message);
+            res.status(500).json({ error: 'Internal Server Error', details: err.message });
+            return;
+        }
+
+        // Check if the result.rows array is empty
+        if (result.rows.length === 0) {
+            res.status(404).json({ error: 'Upline agent not found.' });
+            return;
+        }
+
+        // Assuming result.rows[0].contract_level contains the upline agent's contract level
         const uplineAgentContractLevel = result.rows[0].contract_level;
 
-        if (!uplineContractLevel) {
-            return res.status(400).json({ error: 'Upline agent does not exist.' });
-        }
+        // Implement your contract level validation logic here
+        // Example: if (!isContractLevelAllowed(contract_level, uplineAgentContractLevel)) {
+        //   res.status(400).json({ error: 'Invalid contract level for the specified upline.' });
+        //   return;
+        // }
 
-        if (contract_level === 'AGT' || uplineContractLevel === 'AGT' ||
-            (contract_level === 'GA' && (uplineContractLevel === 'SA' || uplineContractLevel === 'AGT')) ||
-            (contract_level === 'MGA' && (uplineContractLevel === 'GA' || uplineContractLevel === 'SA' || uplineContractLevel === 'AGT')) ||
-            (contract_level === 'RGA' && (uplineContractLevel === 'MGA' || uplineContractLevel === 'GA' || uplineContractLevel === 'SA' || uplineContractLevel === 'AGT')) ||
-            (contract_level === 'SGA' && (uplineContractLevel === 'RGA' || uplineContractLevel === 'MGA' || uplineContractLevel === 'GA' || uplineContractLevel === 'SA' || uplineContractLevel === 'AGT'))) {
-            return res.status(400).json({ error: 'Invalid hierarchy: Contract level does not meet the rules.' });
-        }
-
-        // Insert the agent into the database
+        // If everything is validated, proceed with adding the agent
         const sql = 'INSERT INTO agent_table (agent_name, contract_level, upline) VALUES ($1, $2, $3)';
-    db.query(sql, [agent_name, contract_level, upline], (err, result) => {
-      if (err) {
-        console.error(err.message);
-        res.status(500).json({ error: 'Internal Server Error', details: err.message });
-        return;
-      }
-      res.status(201).json({ message: 'New agent created.', AgentID: result.insertId });
+        db.query(sql, [agent_name, contract_level, upline], (err, result) => {
+            if (err) {
+                console.error(err.message);
+                res.status(500).json({ error: 'Internal Server Error', details: err.message });
+                return;
+            }
+            res.status(201).json({ message: 'New agent created.', AgentID: result.insertId });
+        });
     });
-  });
 });
 
 app.put('/api/agents/:agent_code', (req, res) => {

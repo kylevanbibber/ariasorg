@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import './styles.css';
 
 function App() {
   const [agents, setAgents] = useState([]);
@@ -57,15 +56,7 @@ function App() {
     const agentIndex = contractLevelOrder.indexOf(agentContractLevel);
     return uplineIndex < agentIndex;
   };
-  const handleCancelEdit = () => {
-    setIsEditMode(false);
-    setEditAgent(null);
-    setFormData({
-      agentName: '',
-      contractLevel: 'AGT',
-      upline: '',
-    });
-  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
 
@@ -76,8 +67,8 @@ function App() {
       return;
     }
 
-    if (!agentName || !contractLevel) {
-      alert('Agent Name and Contract Level are required fields.');
+    if (!agentName || !contractLevel || !upline) {
+      alert('Agent Name, Contract Level, and Upline ID are required fields.');
       return;
     }
 
@@ -114,7 +105,7 @@ function App() {
   };
 
   const addAgent = () => {
-    fetch('/api/agents', {
+    fetch('http://localhost:3002/api/agents', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -146,14 +137,14 @@ function App() {
     const updatedAgentName = formData.agentName;
     const updatedContractLevel = formData.contractLevel;
     const updatedUpline = formData.upline;
-  
+
     if (updatedContractLevel === 'SGA' && updatedUpline !== '0') {
       alert('An SGA can only have an upline of 0.');
       return;
     }
 
-    if (!updatedAgentName || !updatedContractLevel) {
-      alert('Agent Name and Contract Level are required fields.');
+    if (!updatedAgentName || !updatedContractLevel || !updatedUpline) {
+      alert('Agent Name, Contract Level, and Upline ID are required fields.');
       return;
     }
 
@@ -162,7 +153,8 @@ function App() {
       return;
     }
 
-    if (updatedContractLevel !== 'SGA') {
+    // Only perform upline validation if there is a change in the upline field
+    if (updatedUpline !== editAgent.upline) {
       const uplineAgent = agents.find((agent) => agent.agent_code.toString() === updatedUpline);
 
       if (uplineAgent && uplineAgent.contract_level === 'RGA') {
@@ -213,9 +205,18 @@ function App() {
     });
   };
 
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditAgent(null);
+    setFormData({
+      agentName: '',
+      contractLevel: 'AGT',
+      upline: '',
+    });
+  };
+
   return (
-    <div className="container">
-         <div className="form-container"></div>
+    <div>
       <form id="addAgentForm" onSubmit={handleSubmit}>
         <label htmlFor="agentName">Agent Name:</label>
         <input
@@ -270,63 +271,63 @@ function App() {
           </tr>
         </thead>
         <tbody>
-        {agents.map((agent) => (
-  <tr key={agent.agent_code}>
-    <td>{agent.agent_code}</td>
-    <td>
-      {isEditMode && editAgent && editAgent.agent_code === agent.agent_code ? (
-        <input
-          type="text"
-          value={formData.agentName}
-          onChange={(e) => setFormData({ ...formData, agentName: e.target.value })}
-        />
-      ) : (
-        agent.agent_name
-      )}
-    </td>
-    <td>
-      {isEditMode && editAgent && editAgent.agent_code === agent.agent_code ? (
-        <select
-          value={formData.contractLevel}
-          onChange={(e) => setFormData({ ...formData, contractLevel: e.target.value })}
-        >
-          <option value="AGT">AGT</option>
-          <option value="SA">SA</option>
-          <option value="GA">GA</option>
-          <option value="MGA">MGA</option>
-          <option value="RGA">RGA</option>
-          <option value="SGA">SGA</option>
-        </select>
-      ) : (
-        agent.contract_level
-      )}
-    </td>
-    <td>
-      {isEditMode && editAgent && editAgent.agent_code === agent.agent_code ? (
-        <input
-          type="text"
-          value={formData.upline}
-          onChange={(e) => setFormData({ ...formData, upline: e.target.value })}
-        />
-      ) : (
-        agent.upline
-      )}
-    </td>
-    <td className="actions">
-  {isEditMode && editAgent && editAgent.agent_code === agent.agent_code ? (
-    <>
-      <button onClick={() => updateAgent(agent.agent_code)}>Save</button>
-      <button onClick={() => handleCancelEdit()}>Cancel</button>
-    </>
-  ) : (
-    <>
-      <button onClick={() => handleEditAgent(agent)}>Edit</button>
-      <button onClick={() => handleDeleteAgent(agent.agent_code)}>Delete</button>
-    </>
-  )}
-</td>
-  </tr>
-))}
+          {agents.map((agent) => (
+            <tr key={agent.agent_code}>
+              <td>{agent.agent_code}</td>
+              <td>
+                {isEditMode && editAgent && editAgent.agent_code === agent.agent_code ? (
+                  <input
+                    type="text"
+                    value={formData.agentName}
+                    onChange={(e) => setFormData({ ...formData, agentName: e.target.value })}
+                  />
+                ) : (
+                  agent.agent_name
+                )}
+              </td>
+              <td>
+                {isEditMode && editAgent && editAgent.agent_code === agent.agent_code ? (
+                  <select
+                    value={formData.contractLevel}
+                    onChange={(e) => setFormData({ ...formData, contractLevel: e.target.value })}
+                  >
+                    <option value="AGT">AGT</option>
+                    <option value="SA">SA</option>
+                    <option value="GA">GA</option>
+                    <option value="MGA">MGA</option>
+                    <option value="RGA">RGA</option>
+                    <option value="SGA">SGA</option>
+                  </select>
+                ) : (
+                  agent.contract_level
+                )}
+              </td>
+              <td>
+                {isEditMode && editAgent && editAgent.agent_code === agent.agent_code ? (
+                  <input
+                    type="text"
+                    value={formData.upline}
+                    onChange={(e) => setFormData({ ...formData, upline: e.target.value })}
+                  />
+                ) : (
+                  agent.upline
+                )}
+              </td>
+              <td>
+                {isEditMode && editAgent && editAgent.agent_code === agent.agent_code ? (
+                  <>
+                    <button onClick={() => updateAgent(agent.agent_code)}>Save</button>
+                    <button onClick={handleCancelEdit}>Cancel</button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => handleEditAgent(agent)}>Edit</button>
+                    <button onClick={() => handleDeleteAgent(agent.agent_code)}>Delete</button>
+                  </>
+                )}
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
